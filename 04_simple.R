@@ -7,6 +7,7 @@ ui <- fluidPage(
   
   fluidRow(
     column(width = 12,
+           # Clicking the button increases the value of input$do_sample by 1
            actionButton("do_sample", "Moar!"),
            plotOutput("sample_plot"),
            textOutput("sample_result")
@@ -15,19 +16,28 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-  
+    
+    # Initialize the reactive value at 10.
+    # The reactive value can store intermediate values
+    # while keeping them in "reactive context"
     sample_count <- reactiveVal(10)
     
+    # When the button is clicked, input$do_sample changes 
+    # and triggers the contents of the "observeEvent" expression
+    # to run. The observeEvent does not return a value like "render"
+    # expressions do.
     observeEvent(input$do_sample,{
       x <- sample_count() + 10
       sample_count(x)
     })
    
     sample_dat <- reactive({
-      tmp <- sample_count()
-      data.frame("rowid" = paste0("row", seq(1, tmp)),
-                 "thicc bois" = rnorm(tmp, 0, 1),
-                 "chonkers" = rnorm(tmp, 0.2, 1),
+      # When observeEvent is triggers, it changes the value of 
+      # sample_count(), so everything depending on sample_count()
+      # recalculates. Here it regenerates the data frame.
+      data.frame("rowid" = paste0("row", seq(1, sample_count())),
+                 "thicc bois" = rnorm(sample_count(), 0, 1),
+                 "chonkers" = rnorm(sample_count(), 0.2, 1),
                  stringsAsFactors = FALSE,
                  check.names = FALSE)
     })

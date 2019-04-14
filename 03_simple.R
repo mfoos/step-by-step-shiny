@@ -20,6 +20,9 @@ ui <- fluidPage(
 server <- function(input, output) {
    
     sample_dat <- reactive({
+      # Perform the random sampling and assign it to a reactive object
+      # so when we plot and perform a t-test, they are not getting
+      # different random samples
       data.frame("rowid" = paste0("row", seq(1,input$sample_count)),
                  "thicc bois" = rnorm(input$sample_count, 0, 1),
                  "chonkers" = rnorm(input$sample_count, 0.2, 1),
@@ -28,6 +31,8 @@ server <- function(input, output) {
     })
   
     output$sample_plot <- renderPlot({
+      # In this example the tidying is done as part of plotting
+      # because the t-test uses the original data format
       sample_dat()  %>%
         gather(population, measurement, -rowid) %>%
       ggplot(aes(x = population, y = measurement, fill = population)) +
@@ -40,9 +45,12 @@ server <- function(input, output) {
     })
     
     output$sample_result <- renderText({
+      # As in the plot, the reactive object must be called
+      # with parentheses (because it's actually a function)
       p <- t.test(sample_dat()[["thicc bois"]], 
              sample_dat()[["chonkers"]], 
              paired = FALSE)[["p.value"]]
+      # Add an asterisk to "significant" results
       if(p >= 0.05){
         paste("p-value = ", p)
       } else {
